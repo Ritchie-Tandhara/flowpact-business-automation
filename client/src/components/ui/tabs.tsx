@@ -6,7 +6,7 @@ export const Tabs = TabsPrimitive.Root
 export function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
   return (
     <TabsPrimitive.List
-      className={cn("inline-flex h-9 items-center gap-1 rounded-lg bg-slate-100 p-1", className)}
+      className={cn("inline-flex h-9 items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1", className)}
       {...props}
     />
   )
@@ -16,7 +16,7 @@ export function TabsTrigger({ className, ...props }: React.ComponentProps<typeof
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-medium text-muted transition-colors data-[state=active]:bg-white data-[state=active]:text-[var(--text)] data-[state=active]:shadow-sm focus-ring",
+        "inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-medium text-muted transition-colors data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-[var(--text)] data-[state=active]:shadow-sm focus-ring",
         className
       )}
       {...props}

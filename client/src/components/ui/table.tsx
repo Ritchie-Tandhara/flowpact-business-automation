@@ -15,7 +15,7 @@ export function TableBody({ className, ...props }: React.HTMLAttributes<HTMLTabl
   return <tbody className={cn("divide-y divide-[var(--border)]", className)} {...props} />
 }
 export function TableRow({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn("hover:bg-slate-50/70 transition-colors", className)} {...props} />
+  return <tr className={cn("hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors", className)} {...props} />
 }
 export function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
   return (

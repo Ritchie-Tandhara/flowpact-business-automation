@@ -11,6 +11,7 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { KpiCard } from "@/components/shared/KpiCard"
+import { InlineBanner } from "@/components/shared/InlineBanner"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/services/api"
@@ -46,11 +47,7 @@ export function Overview() {
         description="Command center for business-verified automation health across the portfolio."
       />
 
-      {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          Failed to load dashboard: {error}
-        </div>
-      )}
+      {error && <InlineBanner className="mb-4">Failed to load dashboard: {error}</InlineBanner>}
 
       {loading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -106,7 +103,7 @@ export function Overview() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400">
                 <TrendingDown className="h-5 w-5" />
               </div>
               <div>

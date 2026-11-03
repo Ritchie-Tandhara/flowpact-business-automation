@@ -3,6 +3,7 @@ import { FlaskConical, Play, ChevronDown, ChevronRight } from "lucide-react"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { StatusBadge } from "@/components/shared/StatusBadge"
+import { InlineBanner } from "@/components/shared/InlineBanner"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -110,9 +111,7 @@ export function ScenarioIntelligence() {
         </div>
       )}
 
-      {runError && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{runError}</div>
-      )}
+      {runError && <InlineBanner className="mb-4">{runError}</InlineBanner>}
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard label="Total Scenarios" value={stats.total} />
@@ -158,7 +157,7 @@ export function ScenarioIntelligence() {
                     </TableCell>
                   </TableRow>
                   {expanded === s.id && (
-                    <TableRow className="bg-slate-50/60">
+                    <TableRow className="bg-slate-50/60 dark:bg-slate-800/40">
                       <TableCell />
                       <TableCell colSpan={4}>
                         <ScenarioDetail scenario={s} />
@@ -182,7 +181,11 @@ function StatCard({ label, value, tone }: { label: string; value: string | numbe
       <p
         className={
           "mt-1 text-xl font-semibold " +
-          (tone === "success" ? "text-green-700" : tone === "error" ? "text-red-700" : "text-[var(--text)]")
+          (tone === "success"
+            ? "text-green-700 dark:text-green-400"
+            : tone === "error"
+              ? "text-red-700 dark:text-red-400"
+              : "text-[var(--text)]")
         }
       >
         {value}
@@ -208,7 +211,7 @@ function ScenarioDetail({ scenario }: { scenario: TestScenario }) {
             <p className="mb-1 text-xs font-medium text-muted">Execution Trace (Business Rule Evaluation)</p>
             <div className="flex flex-col gap-1">
               {scenario.latestResult.executionTrace.map((d, i) => (
-                <div key={i} className="flex items-center justify-between rounded-md border border-[var(--border)] bg-white px-2 py-1 text-xs">
+                <div key={i} className="flex items-center justify-between rounded-md border border-[var(--border)] bg-[var(--card)] px-2 py-1 text-xs">
                   <span>
                     {d.field} {d.operator} {d.value ?? ""}
                   </span>

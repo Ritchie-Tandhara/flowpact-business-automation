@@ -23,7 +23,7 @@ export function TagListEditor({ items, onChange, placeholder }: TagListEditorPro
     <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-1.5">
         {items.map((item, i) => (
-          <div key={i} className="flex items-center justify-between gap-2 rounded-md border border-[var(--border)] bg-slate-50 px-3 py-1.5 text-sm">
+          <div key={i} className="flex items-center justify-between gap-2 rounded-md border border-[var(--border)] bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 text-sm">
             <span className="flex-1">{item}</span>
             <button
               type="button"

@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, CircleAlert, Save } from "lucide-react"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { TagListEditor } from "@/components/shared/TagListEditor"
+import { InlineBanner } from "@/components/shared/InlineBanner"
 import { RuleBuilder } from "@/components/contracts/RuleBuilder"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -184,9 +185,7 @@ export function ContractEditor() {
         }
       />
 
-      {saveError && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{saveError}</div>
-      )}
+      {saveError && <InlineBanner className="mb-4">{saveError}</InlineBanner>}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-5">
@@ -287,12 +286,12 @@ export function ContractEditor() {
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
               {isValid ? (
-                <div className="flex items-center gap-2 text-sm text-green-700">
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
                   <CheckCircle2 className="h-4 w-4" /> All required fields complete
                 </div>
               ) : (
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2 text-sm text-amber-700">
+                  <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
                     <CircleAlert className="h-4 w-4" /> Missing required information
                   </div>
                   <ul className="list-inside list-disc text-xs text-muted">

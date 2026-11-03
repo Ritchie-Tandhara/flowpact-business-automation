@@ -13,9 +13,9 @@ interface KpiCardProps {
 
 const TONE_MAP: Record<string, string> = {
   default: "bg-indigo/10 text-indigo",
-  success: "bg-green-50 text-green-700",
-  warning: "bg-amber-50 text-amber-700",
-  error: "bg-red-50 text-red-700",
+  success: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400",
+  warning: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
+  error: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400",
 }
 
 export function KpiCard({ label, value, icon: Icon, trend, tone = "default" }: KpiCardProps) {
@@ -35,7 +35,7 @@ export function KpiCard({ label, value, icon: Icon, trend, tone = "default" }: K
           <span
             className={cn(
               "flex items-center gap-0.5 font-medium",
-              trend.positive ? "text-green-600" : "text-red-600"
+              trend.positive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
             )}
           >
             {trend.direction === "up" ? (

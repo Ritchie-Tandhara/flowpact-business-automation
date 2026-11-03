@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import { GitCompareArrows } from "lucide-react"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { EmptyState } from "@/components/shared/EmptyState"
+import { InlineBanner } from "@/components/shared/InlineBanner"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -43,11 +44,7 @@ export function ChangeImpactLab() {
   }
 
   if (error) {
-    return (
-      <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-        Failed to load simulations: {error}
-      </div>
-    )
+    return <InlineBanner>Failed to load simulations: {error}</InlineBanner>
   }
 
   return (
@@ -97,7 +94,7 @@ export function ChangeImpactLab() {
                   "rounded-full border px-3 py-1 text-xs font-medium transition-colors " +
                   (filter === f
                     ? "border-indigo bg-indigo/10 text-indigo"
-                    : "border-[var(--border)] text-muted hover:bg-slate-50")
+                    : "border-[var(--border)] text-muted hover:bg-slate-50 dark:hover:bg-slate-800")
                 }
               >
                 {f}
@@ -142,7 +139,11 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone?:
       <p
         className={
           "mt-1 text-xl font-semibold " +
-          (tone === "success" ? "text-green-700" : tone === "error" ? "text-red-700" : "text-[var(--text)]")
+          (tone === "success"
+            ? "text-green-700 dark:text-green-400"
+            : tone === "error"
+              ? "text-red-700 dark:text-red-400"
+              : "text-[var(--text)]")
         }
       >
         {value}

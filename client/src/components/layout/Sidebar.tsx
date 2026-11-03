@@ -61,7 +61,7 @@ export function Sidebar() {
                     "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-indigo/10 text-indigo"
-                      : "text-[var(--muted)] hover:bg-slate-100 hover:text-[var(--text)]"
+                      : "text-[var(--muted)] hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[var(--text)]"
                   )
                 }
                 title={sidebarCollapsed ? item.label : undefined}
@@ -77,7 +77,7 @@ export function Sidebar() {
       <div className="border-t border-[var(--border)] p-2">
         <button
           onClick={toggleSidebar}
-          className="flex w-full items-center justify-center rounded-md py-2 text-muted hover:bg-slate-100 hover:text-[var(--text)] focus-ring"
+          className="flex w-full items-center justify-center rounded-md py-2 text-muted hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[var(--text)] focus-ring"
         >
           {sidebarCollapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
         </button>

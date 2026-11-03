@@ -4,6 +4,7 @@ import { Plus, FileSignature, Search, Copy } from "lucide-react"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { StatusBadge } from "@/components/shared/StatusBadge"
+import { InlineBanner } from "@/components/shared/InlineBanner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -71,11 +72,7 @@ export function ContractsList() {
         </Select>
       </div>
 
-      {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          Failed to load contracts: {error}
-        </div>
-      )}
+      {error && <InlineBanner className="mb-4">Failed to load contracts: {error}</InlineBanner>}
 
       {loading ? (
         <div className="flex flex-col gap-2">

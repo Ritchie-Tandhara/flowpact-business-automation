@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom"
-import { Search, Command, Bell, HelpCircle, Plus } from "lucide-react"
+import { Search, Command, Bell, HelpCircle, Plus, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -28,6 +28,8 @@ const ROUTE_LABELS: Record<string, string> = {
 export function Topbar() {
   const location = useLocation()
   const currentUser = useAppStore((s) => s.currentUser)
+  const theme = useAppStore((s) => s.theme)
+  const toggleTheme = useAppStore((s) => s.toggleTheme)
   const label = ROUTE_LABELS[location.pathname] ?? "FlowPact"
 
   return (
@@ -39,7 +41,7 @@ export function Topbar() {
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2">
-        <button className="flex h-9 w-64 items-center gap-2 rounded-md border border-[var(--border)] px-3 text-sm text-muted hover:bg-slate-50 focus-ring">
+        <button className="flex h-9 w-64 items-center gap-2 rounded-md border border-[var(--border)] px-3 text-sm text-muted hover:bg-slate-50 dark:hover:bg-slate-800 focus-ring">
           <Search className="h-3.5 w-3.5" />
           <span className="flex-1 text-left">Search or jump to...</span>
           <span className="flex items-center gap-0.5 rounded border border-[var(--border)] px-1 text-[10px]">
@@ -51,6 +53,9 @@ export function Topbar() {
           <Plus className="h-3.5 w-3.5" /> Quick Create
         </Button>
 
+        <Button size="icon" variant="ghost" onClick={toggleTheme} title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
         <Button size="icon" variant="ghost">
           <Bell className="h-4 w-4" />
         </Button>

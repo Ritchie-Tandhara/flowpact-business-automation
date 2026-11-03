@@ -3,6 +3,7 @@ import { ShieldCheck, RefreshCw, Search } from "lucide-react"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { StatusBadge } from "@/components/shared/StatusBadge"
+import { InlineBanner } from "@/components/shared/InlineBanner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -87,11 +88,7 @@ export function OutcomeAssurance() {
         </Select>
       </div>
 
-      {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          Failed to load outcome ledger: {error}
-        </div>
-      )}
+      {error && <InlineBanner className="mb-4">Failed to load outcome ledger: {error}</InlineBanner>}
 
       {loading ? (
         <div className="flex flex-col gap-2">
@@ -156,9 +153,7 @@ export function OutcomeAssurance() {
                 </div>
               </DialogHeader>
 
-              {actionError && (
-                <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{actionError}</div>
-              )}
+              {actionError && <InlineBanner className="mb-3">{actionError}</InlineBanner>}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -176,9 +171,9 @@ export function OutcomeAssurance() {
               </div>
 
               {detail.mismatchReason && (
-                <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <InlineBanner variant="warning" className="mt-3 text-xs">
                   {detail.mismatchReason}
-                </div>
+                </InlineBanner>
               )}
 
               {detail.status === "MISMATCH" && (

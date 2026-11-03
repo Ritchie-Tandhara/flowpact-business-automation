@@ -39,7 +39,7 @@ export function RuleBuilder({ rules, onChange }: RuleBuilderProps) {
   return (
     <div className="flex flex-col gap-2">
       {rules.map((rule, i) => (
-        <div key={i} className="flex flex-wrap items-center gap-2 rounded-md border border-[var(--border)] bg-slate-50 p-2.5">
+        <div key={i} className="flex flex-wrap items-center gap-2 rounded-md border border-[var(--border)] bg-slate-50 dark:bg-slate-800/50 p-2.5">
           {i > 0 && (
             <Select value={rule.logicGroup} onValueChange={(v) => update(i, { logicGroup: v })}>
               <SelectTrigger className="w-[72px]">

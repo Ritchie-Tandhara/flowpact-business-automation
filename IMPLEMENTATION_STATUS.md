@@ -8,6 +8,11 @@
 - `client/src/pages/OutcomeAssurance.tsx`: filterable ledger table, detail dialog with expected/observed state diff, reverify, and a resolution flow (Accept Risk / Mark Resolved) gated on providing a note.
 - Verified against real data: running the flagship Subscription Activation suite returns 8/10 passed — the 2 failures are a genuine finding (the contract's 3 rules don't check payment signature or amount, so "Invalid signature" and "Incorrect payment amount" scenarios aren't actually caught), not a bug. This is the kind of gap Scenario Intelligence exists to surface.
 
+## Completed (Light/Dark Mode)
+- Theme is driven by a `data-theme` attribute on `<html>`, set from `localStorage` on load or the OS `prefers-color-scheme` if nothing is stored, persisted on every toggle (`client/src/store/useAppStore.ts`).
+- Tailwind v4 custom variant `@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));` in `index.css` makes `dark:` utilities key off that attribute instead of the OS setting alone, so the in-app toggle (sun/moon icon in the Topbar) overrides the system preference.
+- CSS variables (`--bg`, `--card`, `--border`, `--text`, `--muted`, `--ring`) already carried the base theming; this pass added `dark:` variants to every hardcoded Tailwind color utility across the UI primitives (badge, button, dropdown, select, tabs, skeleton, table row hover), shared components (KpiCard, TagListEditor, RuleBuilder, Sidebar, Topbar), and page-level banners — consolidated the repeated error/warning banner markup into a new `InlineBanner` shared component in the process.
+
 ## Completed (Phase 3 remainder — Execution Center + Change Impact Lab)
 - `server/src/routes/executions.ts`: execution list + detail (node-by-node timeline, linked outcome verifications).
 - `server/src/routes/simulations.ts`: change-simulation list/detail, reading the seeded baseline-vs-proposed comparison.

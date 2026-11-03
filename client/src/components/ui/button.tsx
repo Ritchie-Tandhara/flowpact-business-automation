@@ -9,9 +9,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-indigo text-white hover:bg-indigo/90",
-        secondary: "bg-[var(--card)] text-[var(--text)] border border-[var(--border)] hover:bg-slate-50",
-        ghost: "hover:bg-slate-100 text-[var(--text)]",
-        outline: "border border-[var(--border)] bg-transparent hover:bg-slate-50",
+        secondary: "bg-[var(--card)] text-[var(--text)] border border-[var(--border)] hover:bg-slate-50 dark:hover:bg-slate-800",
+        ghost: "hover:bg-slate-100 dark:hover:bg-slate-800 text-[var(--text)]",
+        outline: "border border-[var(--border)] bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800",
         destructive: "bg-error text-white hover:bg-error/90",
         link: "text-indigo underline-offset-4 hover:underline",
       },
