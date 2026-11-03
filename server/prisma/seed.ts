@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import { WORKFLOW_TEMPLATES } from "../src/data/workflowTemplates.js"
 
 const prisma = new PrismaClient()
 
@@ -174,13 +175,14 @@ async function main() {
   const allWorkflows = [{ workflow: flagshipWorkflow, version: flagshipV1, contract: flagshipContract }]
 
   for (const w of OTHER_WORKFLOWS) {
+    const template = WORKFLOW_TEMPLATES.find((t) => t.name === w.name)
     const workflow = await prisma.workflow.create({
       data: {
         name: w.name,
         domain: w.domain,
         description: w.description,
         status: Math.random() > 0.2 ? "PUBLISHED" : "DRAFT",
-        versions: { create: [{ versionNum: 1, graph: j(genericGraph), isPublished: true }] },
+        versions: { create: [{ versionNum: 1, graph: j(template?.graph ?? genericGraph), isPublished: true }] },
       },
       include: { versions: true },
     })

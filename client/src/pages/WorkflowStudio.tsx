@@ -48,7 +48,7 @@ import { nodeTypes, type StudioNodeData } from "@/components/workflow/nodeTypes"
 import { NodeConfigDialog } from "@/components/workflow/NodeConfigDialog"
 import { api } from "@/services/api"
 import { useFetch } from "@/hooks/useFetch"
-import type { WorkflowGraph, WorkflowGraphNode, WorkflowNodeType, WorkflowSummary, WorkflowDetail, WorkflowVersion, RunResult } from "@/types"
+import type { WorkflowGraph, WorkflowGraphNode, WorkflowNodeType, WorkflowSummary, WorkflowDetail, WorkflowVersion, WorkflowTemplate, RunResult } from "@/types"
 
 const NODE_PALETTE: { type: WorkflowNodeType; label: string; icon: typeof Zap }[] = [
   { type: "trigger", label: "Trigger", icon: Zap },
@@ -89,7 +89,9 @@ export function WorkflowStudio() {
   const [workflowId, setWorkflowId] = useState("")
   const [versionId, setVersionId] = useState("")
   const [newWorkflowOpen, setNewWorkflowOpen] = useState(false)
-  const [newWorkflow, setNewWorkflow] = useState({ name: "", domain: "", description: "" })
+  const [newWorkflow, setNewWorkflow] = useState({ name: "", domain: "", description: "", templateKey: "" })
+  const { data: templatesData } = useFetch(() => api.get<{ templates: WorkflowTemplate[] }>("/workflow-templates"), [])
+  const templates = templatesData?.templates ?? []
   const [testOpen, setTestOpen] = useState(false)
   const [testInput, setTestInput] = useState('{\n  \n}')
   const [testResult, setTestResult] = useState<RunResult | null>(null)
@@ -174,10 +176,24 @@ export function WorkflowStudio() {
     setDirty(true)
   }
 
+  function pickTemplate(template: WorkflowTemplate) {
+    setNewWorkflow({
+      name: template.name,
+      domain: template.domain,
+      description: template.description,
+      templateKey: template.key,
+    })
+  }
+
   async function createWorkflow() {
-    const { workflow: created } = await api.post<{ workflow: WorkflowDetail }>("/workflows", newWorkflow)
+    const { workflow: created } = await api.post<{ workflow: WorkflowDetail }>("/workflows", {
+      name: newWorkflow.name,
+      domain: newWorkflow.domain,
+      description: newWorkflow.description,
+      templateKey: newWorkflow.templateKey || undefined,
+    })
     setNewWorkflowOpen(false)
-    setNewWorkflow({ name: "", domain: "", description: "" })
+    setNewWorkflow({ name: "", domain: "", description: "", templateKey: "" })
     await reloadList()
     setWorkflowId(created.id)
   }
@@ -362,22 +378,51 @@ export function WorkflowStudio() {
       <NodeConfigDialog node={selectedNode} onClose={() => setSelectedNode(null)} onSave={saveNodeConfig} onDelete={deleteNode} />
 
       <Dialog open={newWorkflowOpen} onOpenChange={setNewWorkflowOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>New Workflow</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label>Name</Label>
-              <Input value={newWorkflow.name} onChange={(e) => setNewWorkflow((w) => ({ ...w, name: e.target.value }))} />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Label>Name</Label>
+                <Input value={newWorkflow.name} onChange={(e) => setNewWorkflow((w) => ({ ...w, name: e.target.value, templateKey: "" }))} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label>Domain</Label>
+                <Input value={newWorkflow.domain} onChange={(e) => setNewWorkflow((w) => ({ ...w, domain: e.target.value, templateKey: "" }))} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label>Description</Label>
+                <Textarea value={newWorkflow.description} onChange={(e) => setNewWorkflow((w) => ({ ...w, description: e.target.value, templateKey: "" }))} />
+              </div>
+              {newWorkflow.templateKey && <Badge variant="indigo">Starting from template</Badge>}
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Domain</Label>
-              <Input value={newWorkflow.domain} onChange={(e) => setNewWorkflow((w) => ({ ...w, domain: e.target.value }))} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Description</Label>
-              <Textarea value={newWorkflow.description} onChange={(e) => setNewWorkflow((w) => ({ ...w, description: e.target.value }))} />
+
+            <div className="flex flex-col gap-2">
+              <Label>Or start from a template, by industry</Label>
+              <div className="flex max-h-64 flex-col gap-1.5 overflow-auto pr-1">
+                {templates.length === 0 && <p className="text-xs text-muted">No templates available.</p>}
+                {templates.map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => pickTemplate(t)}
+                    className={
+                      "flex flex-col items-start gap-0.5 rounded-md border px-3 py-2 text-left text-xs transition-colors " +
+                      (newWorkflow.templateKey === t.key
+                        ? "border-indigo bg-indigo/10"
+                        : "border-[var(--border)] hover:bg-slate-50 dark:hover:bg-slate-800")
+                    }
+                  >
+                    <div className="flex w-full items-center justify-between">
+                      <span className="font-medium text-[var(--text)]">{t.name}</span>
+                      <Badge variant="outline">{t.domain}</Badge>
+                    </div>
+                    <span className="text-muted">{t.description}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <DialogFooter>

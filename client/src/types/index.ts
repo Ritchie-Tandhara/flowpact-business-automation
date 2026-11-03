@@ -135,6 +135,14 @@ export interface WorkflowVersion {
   createdAt: string
 }
 
+export interface WorkflowTemplate {
+  key: string
+  name: string
+  domain: string
+  description: string
+  graph: WorkflowGraph
+}
+
 export interface WorkflowDetail {
   id: string
   name: string

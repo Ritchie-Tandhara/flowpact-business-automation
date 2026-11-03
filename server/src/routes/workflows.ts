@@ -2,6 +2,12 @@ import { Router } from "express"
 import { z } from "zod"
 import { prisma } from "../db/client.js"
 import { runWorkflow, validateGraph, type WorkflowGraph } from "../services/workflowInterpreter.js"
+import { WORKFLOW_TEMPLATES, findTemplate } from "../data/workflowTemplates.js"
+
+export const workflowTemplatesRouter = Router()
+workflowTemplatesRouter.get("/", (_req, res) => {
+  res.json({ templates: WORKFLOW_TEMPLATES.map(({ key, name, domain, description, graph }) => ({ key, name, domain, description, graph })) })
+})
 
 export const workflowsRouter = Router()
 
@@ -43,17 +49,22 @@ const createWorkflowSchema = z.object({
   name: z.string().min(1),
   domain: z.string().min(1),
   description: z.string().min(1),
+  templateKey: z.string().optional(),
 })
 
 workflowsRouter.post("/", async (req, res) => {
   const parsed = createWorkflowSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ message: "Invalid workflow payload", issues: parsed.error.issues })
 
+  const { templateKey, ...data } = parsed.data
+  const template = templateKey ? findTemplate(templateKey) : undefined
+  if (templateKey && !template) return res.status(400).json({ message: `Unknown template "${templateKey}"` })
+
   const workflow = await prisma.workflow.create({
     data: {
-      ...parsed.data,
+      ...data,
       status: "DRAFT",
-      versions: { create: [{ versionNum: 1, graph: j(DEFAULT_GRAPH), isPublished: false }] },
+      versions: { create: [{ versionNum: 1, graph: j(template?.graph ?? DEFAULT_GRAPH), isPublished: false }] },
     },
     include: { versions: true },
   })
