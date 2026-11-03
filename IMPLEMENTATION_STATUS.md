@@ -8,6 +8,14 @@
 - `client/src/pages/OutcomeAssurance.tsx`: filterable ledger table, detail dialog with expected/observed state diff, reverify, and a resolution flow (Accept Risk / Mark Resolved) gated on providing a note.
 - Verified against real data: running the flagship Subscription Activation suite returns 8/10 passed — the 2 failures are a genuine finding (the contract's 3 rules don't check payment signature or amount, so "Invalid signature" and "Incorrect payment amount" scenarios aren't actually caught), not a bug. This is the kind of gap Scenario Intelligence exists to surface.
 
+## Completed (Phase 3 remainder — Execution Center + Change Impact Lab)
+- `server/src/routes/executions.ts`: execution list + detail (node-by-node timeline, linked outcome verifications).
+- `server/src/routes/simulations.ts`: change-simulation list/detail, reading the seeded baseline-vs-proposed comparison.
+- `client/src/pages/ExecutionCenter.tsx`: filterable execution list, detail dialog with the node timeline and surfaced error messages. Technical status and business outcome status are always shown as two separate badges, never conflated.
+- `client/src/pages/ChangeImpactLab.tsx`: simulation picker, impact stat cards (unchanged/improved/regressed/newly-violated), filterable scenario-level decision diff table. Reads the real seeded `ChangeSimulation` row — this UI does not itself run a new simulation yet; "proposed version → run against the same scenarios" automation is deferred until Workflow Studio (Phase 4) exists to edit/create a proposed version in the first place.
+
+**Phase 3 is now complete**: Scenario Intelligence, Outcome Assurance Ledger, Execution Center, and Change Impact Lab all have working UI and real backend logic.
+
 ## Completed (Phase 2 — Core Business Logic: Business Contracts)
 - `server/src/routes/workflows.ts`: lightweight list endpoint for linking a contract to a workflow.
 - `client/src/pages/contracts/ContractsList.tsx`: searchable/filterable contract table with status badges and duplicate action.
@@ -33,8 +41,7 @@
 - `npx tsc --noEmit` passes on the client.
 
 ## Not yet built (by phase)
-- **Phase 3 remainder**: Change Impact Lab and Execution Center UI (backend tables + seed data, including one seeded `ChangeSimulation`, already exist; no routes/UI yet).
-- **Phase 4**: Workflow Studio — React Flow canvas, node config panels, workflow interpreter (JSON graph schema is already seeded).
+- **Phase 4**: Workflow Studio — React Flow canvas, node config panels, workflow interpreter (JSON graph schema is already seeded). This is also what unlocks creating new proposed workflow versions, which Change Impact Lab needs to run fresh simulations rather than just display the seeded one.
 - **Phase 5**: Approvals UI, AI Automation Architect (optional), Analytics drill-downs, `/docs` BA documentation set, final README.
 
 ## Known issues / notes
@@ -43,4 +50,4 @@
 - No authentication is implemented yet; three demo personas (Business Analyst, Automation Developer, Business Approver) exist as seeded `User` rows with no login gate.
 
 ## Next step
-Finish Phase 3: Change Impact Lab (baseline vs. proposed version comparison UI, reading the seeded `ChangeSimulation`) and Execution Center (execution list + node-trace timeline view).
+Build Phase 4: Workflow Studio. React Flow canvas rendering the already-seeded JSON graph schema, node config panels for the 7 node types, a deterministic graph interpreter (no arbitrary JS execution), and test/publish actions.

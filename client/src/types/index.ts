@@ -93,6 +93,58 @@ export interface TestScenario {
   latestResult: TestRunResult | null
 }
 
+export interface NodeExecutionTrace {
+  id: string
+  nodeId: string
+  nodeType: string
+  nodeName: string
+  status: "SUCCESS" | "FAILED" | "SKIPPED"
+  input: Record<string, unknown>
+  output: Record<string, unknown> | null
+  errorMessage: string | null
+  order: number
+}
+
+export interface ExecutionRecord {
+  id: string
+  workflowId: string
+  workflow?: { id: string; name: string; domain: string }
+  workflowVersionId: string
+  workflowVersion?: { id: string; versionNum: number }
+  trigger: string
+  startedAt: string
+  completedAt: string | null
+  technicalStatus: "SUCCESS" | "FAILED" | "ERROR"
+  businessOutcomeStatus: "VERIFIED" | "MISMATCH" | "PENDING" | "UNABLE_TO_VERIFY"
+  errorCategory: string | null
+  inputSnapshot: Record<string, unknown>
+  outputSnapshot: Record<string, unknown> | null
+  nodeTraces?: NodeExecutionTrace[]
+  outcomeVerifications?: OutcomeVerification[]
+}
+
+export interface ChangeSimulationResultRow {
+  scenario: string
+  baselineDecision: string
+  proposedDecision: string
+  change: "UNCHANGED" | "IMPROVED" | "REGRESSED"
+}
+
+export interface ChangeSimulation {
+  id: string
+  workflowId: string
+  workflow?: { id: string; name: string; domain: string } | null
+  baselineVersion: { id: string; versionNum: number }
+  proposedVersion: { id: string; versionNum: number }
+  totalScenarios: number
+  unchangedCount: number
+  improvedCount: number
+  regressedCount: number
+  newlyViolatedCount: number
+  resultDetail: ChangeSimulationResultRow[]
+  createdAt: string
+}
+
 export interface OutcomeVerification {
   id: string
   executionId: string

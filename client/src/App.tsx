@@ -1,8 +1,6 @@
 import { Routes, Route } from "react-router-dom"
 import {
   Workflow,
-  GitCompareArrows,
-  PlayCircle,
   CheckSquare,
   BarChart3,
   Settings,
@@ -14,6 +12,8 @@ import { ContractsList } from "@/pages/contracts/ContractsList"
 import { ContractEditor } from "@/pages/contracts/ContractEditor"
 import { ScenarioIntelligence } from "@/pages/ScenarioIntelligence"
 import { OutcomeAssurance } from "@/pages/OutcomeAssurance"
+import { ExecutionCenter } from "@/pages/ExecutionCenter"
+import { ChangeImpactLab } from "@/pages/ChangeImpactLab"
 
 function App() {
   return (
@@ -35,28 +35,8 @@ function App() {
           }
         />
         <Route path="/scenarios" element={<ScenarioIntelligence />} />
-        <Route
-          path="/impact-lab"
-          element={
-            <ComingSoon
-              title="Change Impact Lab"
-              description="Compare workflow versions against the same synthetic dataset before you publish."
-              icon={GitCompareArrows}
-              phaseNote="Phase 3 of the build plan: baseline vs. proposed comparison and regression detection."
-            />
-          }
-        />
-        <Route
-          path="/executions"
-          element={
-            <ComingSoon
-              title="Execution Center"
-              description="Monitor executions with node-level traces and separate technical vs. business status."
-              icon={PlayCircle}
-              phaseNote="Phase 3 of the build plan: execution list, detail timeline, and trace inspection."
-            />
-          }
-        />
+        <Route path="/impact-lab" element={<ChangeImpactLab />} />
+        <Route path="/executions" element={<ExecutionCenter />} />
         <Route path="/outcomes" element={<OutcomeAssurance />} />
         <Route
           path="/approvals"
