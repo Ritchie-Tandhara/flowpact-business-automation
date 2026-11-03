@@ -58,3 +58,53 @@ export interface BusinessContract {
   createdAt: string
   updatedAt: string
 }
+
+export type TestType = "POSITIVE" | "NEGATIVE" | "BOUNDARY" | "EXCEPTION" | "REGRESSION"
+
+export interface RuleEvaluationDetail {
+  field: string
+  operator: string
+  value?: string | null
+  passed: boolean
+  referenced: boolean
+}
+
+export interface TestRunResult {
+  id: string
+  status: "PASSED" | "FAILED" | "BLOCKED" | "NOT_RUN"
+  actualDecision: string | null
+  actualOutcome: string | null
+  executionTrace: RuleEvaluationDetail[]
+  createdAt: string
+}
+
+export interface TestScenario {
+  id: string
+  contractId: string
+  workflowId?: string | null
+  testType: TestType
+  description: string
+  inputData: Record<string, unknown>
+  preconditions: string[]
+  expectedDecision: string
+  expectedOutcome: string
+  prohibitedActions: string[]
+  createdAt: string
+  latestResult: TestRunResult | null
+}
+
+export interface OutcomeVerification {
+  id: string
+  executionId: string
+  contractId: string
+  contract?: { id: string; name: string; domain: string }
+  execution?: { id: string; workflowId: string; startedAt: string; technicalStatus: string }
+  expectedState: Record<string, unknown>
+  observedState: Record<string, unknown>
+  status: "VERIFIED" | "MISMATCH" | "PENDING_VERIFICATION" | "UNABLE_TO_VERIFY"
+  mismatchReason: string | null
+  evidence: Record<string, unknown> | null
+  resolutionStatus: "OPEN" | "RESOLVED" | "ACCEPTED_RISK"
+  ownerId: string | null
+  verifiedAt: string
+}

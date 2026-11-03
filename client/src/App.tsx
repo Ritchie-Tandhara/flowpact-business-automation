@@ -1,10 +1,8 @@
 import { Routes, Route } from "react-router-dom"
 import {
   Workflow,
-  FlaskConical,
   GitCompareArrows,
   PlayCircle,
-  ShieldCheck,
   CheckSquare,
   BarChart3,
   Settings,
@@ -14,6 +12,8 @@ import { Overview } from "@/pages/Overview"
 import { ComingSoon } from "@/pages/ComingSoon"
 import { ContractsList } from "@/pages/contracts/ContractsList"
 import { ContractEditor } from "@/pages/contracts/ContractEditor"
+import { ScenarioIntelligence } from "@/pages/ScenarioIntelligence"
+import { OutcomeAssurance } from "@/pages/OutcomeAssurance"
 
 function App() {
   return (
@@ -34,17 +34,7 @@ function App() {
             />
           }
         />
-        <Route
-          path="/scenarios"
-          element={
-            <ComingSoon
-              title="Scenario Intelligence"
-              description="Positive, negative, boundary, and exception test cases linked to business contracts."
-              icon={FlaskConical}
-              phaseNote="Phase 3 of the build plan: scenario authoring, execution, and the test result matrix."
-            />
-          }
-        />
+        <Route path="/scenarios" element={<ScenarioIntelligence />} />
         <Route
           path="/impact-lab"
           element={
@@ -67,17 +57,7 @@ function App() {
             />
           }
         />
-        <Route
-          path="/outcomes"
-          element={
-            <ComingSoon
-              title="Outcome Assurance"
-              description="Verify that completed workflows achieved their intended business outcome."
-              icon={ShieldCheck}
-              phaseNote="Phase 3 of the build plan: the outcome assurance ledger and reverification flow."
-            />
-          }
-        />
+        <Route path="/outcomes" element={<OutcomeAssurance />} />
         <Route
           path="/approvals"
           element={
