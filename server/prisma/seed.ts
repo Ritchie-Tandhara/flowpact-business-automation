@@ -436,7 +436,7 @@ async function main() {
       requesterId: dev.id,
       reviewerId: approver.id,
       status: "SUBMITTED",
-      testSummary: j({ passed: 9, failed: 1, totalScenarios: flagshipScenarios.length }),
+      testSummary: j({ passedCount: 9, failedCount: 1, totalScenarios: flagshipScenarios.length }),
       comments: "Adds zero-amount payment guard rail based on Change Impact Lab results.",
     },
   })

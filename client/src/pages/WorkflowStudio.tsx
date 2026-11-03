@@ -25,6 +25,7 @@ import {
   Globe,
   ShieldCheck,
   Flag,
+  Send,
 } from "lucide-react"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { EmptyState } from "@/components/shared/EmptyState"
@@ -48,7 +49,7 @@ import { nodeTypes, type StudioNodeData } from "@/components/workflow/nodeTypes"
 import { NodeConfigDialog } from "@/components/workflow/NodeConfigDialog"
 import { api } from "@/services/api"
 import { useFetch } from "@/hooks/useFetch"
-import type { WorkflowGraph, WorkflowGraphNode, WorkflowNodeType, WorkflowSummary, WorkflowDetail, WorkflowVersion, WorkflowTemplate, RunResult } from "@/types"
+import type { WorkflowGraph, WorkflowGraphNode, WorkflowNodeType, WorkflowSummary, WorkflowDetail, WorkflowVersion, WorkflowTemplate, RunResult, UserSummary } from "@/types"
 
 const NODE_PALETTE: { type: WorkflowNodeType; label: string; icon: typeof Zap }[] = [
   { type: "trigger", label: "Trigger", icon: Zap },
@@ -92,6 +93,8 @@ export function WorkflowStudio() {
   const [newWorkflow, setNewWorkflow] = useState({ name: "", domain: "", description: "", templateKey: "" })
   const { data: templatesData } = useFetch(() => api.get<{ templates: WorkflowTemplate[] }>("/workflow-templates"), [])
   const templates = templatesData?.templates ?? []
+  const { data: usersData } = useFetch(() => api.get<{ users: UserSummary[] }>("/users"), [])
+  const requester = usersData?.users.find((u) => u.role === "AUTOMATION_DEVELOPER") ?? usersData?.users[0]
   const [testOpen, setTestOpen] = useState(false)
   const [testInput, setTestInput] = useState('{\n  \n}')
   const [testResult, setTestResult] = useState<RunResult | null>(null)
@@ -257,6 +260,18 @@ export function WorkflowStudio() {
     }
   }
 
+  async function submitForApproval() {
+    if (!workflow || !activeVersion || !requester) return
+    if (dirty) await saveVersion()
+    await api.post("/approvals", {
+      workflowId: workflow.id,
+      workflowVersionId: activeVersion.id,
+      requesterId: requester.id,
+      comments: `Submitted from Workflow Studio for v${activeVersion.versionNum}.`,
+    })
+    setBanner({ variant: "warning", text: "Submitted for approval. Review it from the Approvals page." })
+  }
+
   async function publish() {
     if (!workflow || !activeVersion) return
     const valid = await validateCurrent()
@@ -342,6 +357,9 @@ export function WorkflowStudio() {
             </Button>
             <Button variant="secondary" size="sm" onClick={saveVersion} disabled={!dirty}>
               <Save className="h-3.5 w-3.5" /> Save
+            </Button>
+            <Button variant="secondary" size="sm" onClick={submitForApproval} disabled={!requester}>
+              <Send className="h-3.5 w-3.5" /> Submit for Approval
             </Button>
             <Button size="sm" onClick={publish}>
               <Rocket className="h-3.5 w-3.5" /> Publish

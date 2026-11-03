@@ -244,3 +244,45 @@ export interface OutcomeVerification {
   ownerId: string | null
   verifiedAt: string
 }
+
+export interface ApprovalDecision {
+  id: string
+  workflowId: string
+  workflow?: { id: string; name: string; domain: string } | null
+  workflowVersionId: string
+  workflowVersion?: { id: string; versionNum: number }
+  contractId: string | null
+  contract?: { id: string; name: string; status: string; acceptanceCriteria: string } | null
+  requesterId: string
+  requester?: { id: string; name: string; role: string }
+  reviewerId: string | null
+  reviewer?: { id: string; name: string; role: string } | null
+  status: "DRAFT" | "SUBMITTED" | "APPROVED" | "REJECTED"
+  testSummary: { totalScenarios: number; passedCount: number; failedCount: number } | null
+  comments: string | null
+  isException: boolean
+  exceptionReason: string | null
+  decidedAt: string | null
+  createdAt: string
+}
+
+export interface DomainBreakdown {
+  domain: string
+  workflows: number
+  contracts: number
+}
+
+export interface StatusCount {
+  status: string
+  count: number
+}
+
+export interface ScenarioCoverageRow {
+  contractId: string
+  name: string
+  domain: string
+  totalRules: number
+  coveredRules: number
+  coveragePct: number
+  scenarioCount: number
+}

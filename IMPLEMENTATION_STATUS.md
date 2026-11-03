@@ -1,5 +1,14 @@
 # FlowPact — Implementation Status
 
+## All 5 build phases complete
+Phase 5 (the last remaining one) added:
+- `server/src/routes/approvals.ts`: `GET/POST /approvals`, `POST /approvals/:id/decide`. Approving is blocked with a 409 if the latest test run has failures or the linked contract has no acceptance criteria, unless the reviewer explicitly marks it an authorized exception with a required reason — verified live via API (blocked without exception, succeeded with one).
+- `server/src/routes/analytics.ts`: domain breakdown, contract-status/outcome-status/approval-funnel distributions, and per-contract business-rule coverage — all computed live from the database, not hardcoded.
+- `client/src/pages/Approvals.tsx`, `Analytics.tsx`, `Settings.tsx`: real pages replacing the three remaining `ComingSoon` placeholders (now deleted, since nothing uses it). Settings includes a working demo-persona switcher (3 seeded users) and a theme toggle duplicate of the Topbar one.
+- `WorkflowStudio.tsx` gained a "Submit for Approval" action next to Publish, closing the loop from building a workflow to requesting its release.
+- **Found and fixed a real bug while verifying this**: the seeded flagship approval's `testSummary` used a different field-naming shape (`passed`/`failed`) than the one the approval-gate check and the live-created records use (`passedCount`/`failedCount`), so the gate silently never fired for seeded data. Fixed the seed shape and re-verified the 409 block actually triggers.
+- Added the `/docs` BA documentation set (5 files: product vision/PRD, business contract spec + Gherkin stories + decision tables, architecture + ER diagram + API spec, testing/change-impact/outcome-verification methodology, traceability matrix + known limitations + roadmap) and the root `README.md`, both connected to what's actually implemented and tested in this build rather than written speculatively. Verified the README's own "Getting Started" commands (`npm install`, `npm run migrate`, `npm run seed`, `npm test`) actually work from the repo root.
+
 ## Completed (Phase 3 — Scenario Intelligence + Outcome Assurance Ledger)
 - `server/src/services/ruleEngine.ts`: deterministic business-rule evaluator (dot-path lookup, all 7 operators, AND/OR folding per rule's `logicGroup`). This evaluates contract business rules against scenario input data — it is **not** the full workflow graph interpreter (that's Phase 4's Workflow Studio); scope is intentionally limited to precondition/rule checking, documented as such in the UI and here.
 - `server/src/routes/scenarios.ts`: CRUD + `POST /scenarios/run-suite` — runs every scenario for a contract through the rule engine, persists a real `TestRun`/`TestRunResult` set (no randomization), and returns rule coverage (`covered rule fields / total rule fields × 100`, distinct from scenario count per spec). Running is blocked with a clear 409 if the contract has no linked workflow version.
@@ -75,16 +84,18 @@ Added 5 complex, multi-branch example workflows — one per remaining major indu
 - Client dev server (Vite auto-picks a free port on this shared machine — check its terminal output for the URL; proxies `/api` to `localhost:4100`).
 - `npx tsc --noEmit` passes on the client.
 
-## Not yet built (by phase)
-- **Phase 5**: Approvals UI, AI Automation Architect (optional), Analytics drill-downs, `/docs` BA documentation set, final README.
-- Change Impact Lab still only displays the one seeded `ChangeSimulation`; wiring "create a new proposed version in Workflow Studio → run it against the same scenario suite → save a fresh simulation" is a natural next connective piece now that Workflow Studio exists, but is not built yet.
-- Undo/redo on the canvas is not implemented (spec says "where feasible" — React Flow doesn't provide it for free, and it wasn't prioritized over the interpreter/validation work).
-- **Phase 5**: Approvals UI, AI Automation Architect (optional), Analytics drill-downs, `/docs` BA documentation set, final README.
+## Not yet built (optional / explicitly deferred — see `docs/05-traceability-and-roadmap.md`)
+- Change Impact Lab still only displays the one seeded `ChangeSimulation`; it doesn't yet let a user pick two versions and run a fresh comparison from the UI.
+- No live "run a real execution" trigger — `ExecutionRecord`/`NodeExecutionTrace`/`OutcomeVerification` rows are seed-script-only.
+- Topbar command palette, global search, and notification bell are decorative, not wired to real logic. No toast notification system yet.
+- AI Automation Architect (explicitly optional per the original spec, and last).
+- Undo/redo on the Workflow Studio canvas (spec says "where feasible" — not prioritized over the interpreter/validation work).
+- No real authentication; three demo personas exist as seeded `User` rows, switchable in Settings, but nothing is gated server-side by persona.
 
 ## Known issues / notes
-- Dev ports collide with other projects on this machine. Current working ports: server `4155` (`server/.env`), client proxy target matches. Vite's configured port may be auto-incremented if taken — always check the terminal's printed URL rather than assuming a fixed port.
+- Dev ports collide with other projects on this machine. Current working ports: server `4155` (`server/.env`), client `5327` (`client/vite.config.ts`). Vite's/`tsx`'s configured port may be auto-incremented if taken — always check the terminal's printed URL rather than assuming a fixed port.
 - `npm audit` on `server` reports dev-only vulnerabilities in `vitest`'s bundled `vite`/`esbuild`/`tinypool` (test runner only, not shipped code). Not addressed — fixing requires a vitest v5 major bump that currently conflicts with other deps; low priority for a portfolio demo.
-- No authentication is implemented yet; three demo personas (Business Analyst, Automation Developer, Business Approver) exist as seeded `User` rows with no login gate.
+- Business rule AND/OR grouping is a flat left-to-right fold, not full parenthesized grouping.
 
 ## Next step
-Build Phase 5: Approvals UI (the data model and one seeded `ApprovalDecision` already exist), then the BA documentation set in `/docs` and the final portfolio README.
+All 5 phases of the original build plan are complete and verified. Pick up from `docs/05-traceability-and-roadmap.md`'s roadmap section for the highest-value next increment (live Change Impact runs, a real execution trigger, or the decorative UX scaffolding).

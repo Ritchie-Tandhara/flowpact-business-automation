@@ -8,6 +8,8 @@ import { scenariosRouter } from "./routes/scenarios.js"
 import { outcomesRouter } from "./routes/outcomes.js"
 import { executionsRouter } from "./routes/executions.js"
 import { simulationsRouter } from "./routes/simulations.js"
+import { approvalsRouter } from "./routes/approvals.js"
+import { analyticsRouter } from "./routes/analytics.js"
 
 const app = express()
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000
@@ -25,6 +27,8 @@ app.use("/api/scenarios", scenariosRouter)
 app.use("/api/outcomes", outcomesRouter)
 app.use("/api/executions", executionsRouter)
 app.use("/api/simulations", simulationsRouter)
+app.use("/api/approvals", approvalsRouter)
+app.use("/api/analytics", analyticsRouter)
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err)
