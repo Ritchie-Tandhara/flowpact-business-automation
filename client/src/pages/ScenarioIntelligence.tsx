@@ -208,9 +208,9 @@ function ScenarioDetail({ scenario }: { scenario: TestScenario }) {
         <p className="mb-3 text-sm">{scenario.expectedOutcome}</p>
         {scenario.latestResult ? (
           <>
-            <p className="mb-1 text-xs font-medium text-muted">Execution Trace (Business Rule Evaluation)</p>
+            <p className="mb-1 text-xs font-medium text-muted">Business Rule Evaluation (decides pass/fail)</p>
             <div className="flex flex-col gap-1">
-              {scenario.latestResult.executionTrace.map((d, i) => (
+              {scenario.latestResult.executionTrace.ruleTrace.map((d, i) => (
                 <div key={i} className="flex items-center justify-between rounded-md border border-[var(--border)] bg-[var(--card)] px-2 py-1 text-xs">
                   <span>
                     {d.field} {d.operator} {d.value ?? ""}
@@ -220,6 +220,29 @@ function ScenarioDetail({ scenario }: { scenario: TestScenario }) {
               ))}
             </div>
             <p className="mt-2 text-xs text-muted">{scenario.latestResult.actualOutcome}</p>
+
+            <p className="mb-1 mt-4 text-xs font-medium text-muted">Workflow Graph Trace (informational — not used for pass/fail)</p>
+            {scenario.latestResult.executionTrace.graphTrace ? (
+              <>
+                <div className="flex flex-col gap-1">
+                  {scenario.latestResult.executionTrace.graphTrace.map((t, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-md border border-[var(--border)] bg-[var(--card)] px-2 py-1 text-xs">
+                      <span>{t.nodeName}</span>
+                      <Badge variant={t.status === "SUCCESS" ? "success" : t.status === "FAILED" ? "error" : "outline"}>{t.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-muted">
+                  {scenario.latestResult.executionTrace.graphOutcome?.completed
+                    ? `Reached terminal node: ${scenario.latestResult.executionTrace.graphOutcome.terminalNodeName}`
+                    : `Stopped: ${scenario.latestResult.executionTrace.graphOutcome?.stoppedReason}`}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-muted">
+                {scenario.latestResult.executionTrace.graphInvalidReason ?? "The linked workflow's current graph is not valid, so it was not run."}
+              </p>
+            )}
           </>
         ) : (
           <p className="text-xs text-muted">Not yet run. Click "Run Suite" to evaluate this scenario against the contract's business rules.</p>

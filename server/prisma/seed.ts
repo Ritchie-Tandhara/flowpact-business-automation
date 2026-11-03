@@ -174,6 +174,79 @@ async function main() {
 
   const allWorkflows = [{ workflow: flagshipWorkflow, version: flagshipV1, contract: flagshipContract }]
 
+  const TEMPLATE_RULES_AND_SCENARIOS: Record<
+    string,
+    {
+      rules: { field: string; operator: string; value?: string }[]
+      scenarios: { testType: string; description: string; inputData: unknown; expectedDecision: string; expectedOutcome: string }[]
+    }
+  > = {
+    "Order Refund Processing Contract": {
+      rules: [
+        { field: "order.deliveryStatus", operator: "EQUALS", value: "DELIVERED" },
+        { field: "refund.withinWindow", operator: "EQUALS", value: "true" },
+      ],
+      scenarios: [
+        { testType: "POSITIVE", description: "Delivered order, within return window", inputData: { order: { deliveryStatus: "DELIVERED" }, refund: { withinWindow: "true" } }, expectedDecision: "PROCEED", expectedOutcome: "refund.status=PROCESSED" },
+        { testType: "NEGATIVE", description: "Delivered order, return window expired", inputData: { order: { deliveryStatus: "DELIVERED" }, refund: { withinWindow: "false" } }, expectedDecision: "REJECT", expectedOutcome: "refund rejected - window expired" },
+        { testType: "BOUNDARY", description: "Order still in transit", inputData: { order: { deliveryStatus: "IN_TRANSIT" } }, expectedDecision: "REJECT", expectedOutcome: "on hold pending delivery" },
+        { testType: "EXCEPTION", description: "Order cancelled before delivery", inputData: { order: { deliveryStatus: "CANCELLED" } }, expectedDecision: "REJECT", expectedOutcome: "rejected - invalid order state" },
+        { testType: "REGRESSION", description: "Repeated refund request on same eligible order", inputData: { order: { deliveryStatus: "DELIVERED" }, refund: { withinWindow: "true" } }, expectedDecision: "PROCEED", expectedOutcome: "refund.status=PROCESSED" },
+        { testType: "EXCEPTION", description: "Missing delivery status entirely", inputData: {}, expectedDecision: "REJECT", expectedOutcome: "rejected - invalid order state" },
+      ],
+    },
+    "Lead Qualification Routing Contract": {
+      rules: [
+        { field: "lead.score", operator: "GREATER_THAN", value: "50" },
+        { field: "lead.source", operator: "IS_NOT_EMPTY" },
+      ],
+      scenarios: [
+        { testType: "POSITIVE", description: "High score lead from paid ads", inputData: { lead: { score: 85, source: "ads" } }, expectedDecision: "PROCEED", expectedOutcome: "lead.owner=senior_team" },
+        { testType: "POSITIVE", description: "Medium score referral lead", inputData: { lead: { score: 60, source: "referral" } }, expectedDecision: "PROCEED", expectedOutcome: "lead.owner=mid_team" },
+        { testType: "NEGATIVE", description: "Low score lead", inputData: { lead: { score: 30, source: "ads" } }, expectedDecision: "REJECT", expectedOutcome: "lead.priority=LOW" },
+        { testType: "BOUNDARY", description: "Score exactly at threshold", inputData: { lead: { score: 50, source: "ads" } }, expectedDecision: "REJECT", expectedOutcome: "lead.priority=LOW" },
+        { testType: "EXCEPTION", description: "Missing lead source", inputData: { lead: { score: 80 } }, expectedDecision: "REJECT", expectedOutcome: "rejected - missing source" },
+        { testType: "REGRESSION", description: "Repeated high-score referral lead", inputData: { lead: { score: 90, source: "referral" } }, expectedDecision: "PROCEED", expectedOutcome: "lead.owner=senior_team" },
+      ],
+    },
+    "Invoice Reconciliation Contract": {
+      rules: [{ field: "payment.matchesInvoice", operator: "EQUALS", value: "true" }],
+      scenarios: [
+        { testType: "POSITIVE", description: "Payment matches open invoice", inputData: { payment: { matchesInvoice: "true", amount: 500 } }, expectedDecision: "PROCEED", expectedOutcome: "invoice.status=PAID" },
+        { testType: "NEGATIVE", description: "Unmatched payment, zero amount", inputData: { payment: { matchesInvoice: "false", amount: 0 } }, expectedDecision: "REJECT", expectedOutcome: "rejected - invalid payment" },
+        { testType: "BOUNDARY", description: "Unmatched payment, nonzero amount", inputData: { payment: { matchesInvoice: "false", amount: 150 } }, expectedDecision: "REJECT", expectedOutcome: "invoice.status=PARTIAL" },
+        { testType: "EXCEPTION", description: "Missing payment data entirely", inputData: {}, expectedDecision: "REJECT", expectedOutcome: "rejected - invalid payment" },
+        { testType: "REGRESSION", description: "Duplicate matched payment webhook", inputData: { payment: { matchesInvoice: "true", amount: 500 } }, expectedDecision: "PROCEED", expectedOutcome: "invoice.status=PAID" },
+        { testType: "NEGATIVE", description: "Matched flag true but zero amount", inputData: { payment: { matchesInvoice: "true", amount: 0 } }, expectedDecision: "PROCEED", expectedOutcome: "invoice.status=PAID" },
+      ],
+    },
+    "Support Ticket Escalation Contract": {
+      rules: [
+        { field: "ticket.priority", operator: "IS_NOT_EMPTY" },
+        { field: "ticket.priority", operator: "NOT_EQUALS", value: "LOW" },
+      ],
+      scenarios: [
+        { testType: "POSITIVE", description: "Critical priority ticket", inputData: { ticket: { priority: "CRITICAL" } }, expectedDecision: "PROCEED", expectedOutcome: "ticket.assignedTeam=oncall" },
+        { testType: "POSITIVE", description: "High priority ticket", inputData: { ticket: { priority: "HIGH" } }, expectedDecision: "PROCEED", expectedOutcome: "ticket.assignedTeam=senior_support" },
+        { testType: "NEGATIVE", description: "Low priority ticket", inputData: { ticket: { priority: "LOW" } }, expectedDecision: "REJECT", expectedOutcome: "ticket.assignedTeam=standard_queue" },
+        { testType: "BOUNDARY", description: "Medium priority ticket", inputData: { ticket: { priority: "MEDIUM" } }, expectedDecision: "PROCEED", expectedOutcome: "ticket.assignedTeam=standard_queue" },
+        { testType: "EXCEPTION", description: "Missing ticket priority", inputData: { ticket: {} }, expectedDecision: "REJECT", expectedOutcome: "rejected - missing priority" },
+        { testType: "REGRESSION", description: "Repeated critical ticket breach", inputData: { ticket: { priority: "CRITICAL" } }, expectedDecision: "PROCEED", expectedOutcome: "ticket.assignedTeam=oncall" },
+      ],
+    },
+    "Employee Onboarding Provisioning Contract": {
+      rules: [{ field: "employee.department", operator: "IS_NOT_EMPTY" }],
+      scenarios: [
+        { testType: "POSITIVE", description: "New engineering hire", inputData: { employee: { department: "Engineering" } }, expectedDecision: "PROCEED", expectedOutcome: "employee.accountsProvisioned=true" },
+        { testType: "POSITIVE", description: "Remote sales hire", inputData: { employee: { department: "Sales", remote: "true" } }, expectedDecision: "PROCEED", expectedOutcome: "employee.equipmentShipped=true" },
+        { testType: "POSITIVE", description: "Office-based sales hire", inputData: { employee: { department: "Sales", remote: "false" } }, expectedDecision: "PROCEED", expectedOutcome: "employee.equipment=office_kit" },
+        { testType: "EXCEPTION", description: "Missing department entirely", inputData: { employee: {} }, expectedDecision: "REJECT", expectedOutcome: "rejected - missing department" },
+        { testType: "BOUNDARY", description: "Department given as empty string", inputData: { employee: { department: "" } }, expectedDecision: "REJECT", expectedOutcome: "rejected - missing department" },
+        { testType: "REGRESSION", description: "Repeated engineering hire record", inputData: { employee: { department: "Engineering" } }, expectedDecision: "PROCEED", expectedOutcome: "employee.accountsProvisioned=true" },
+      ],
+    },
+  }
+
   for (const w of OTHER_WORKFLOWS) {
     const template = WORKFLOW_TEMPLATES.find((t) => t.name === w.name)
     const workflow = await prisma.workflow.create({
@@ -187,9 +260,12 @@ async function main() {
       include: { versions: true },
     })
 
+    const contractName = `${w.name} Contract`
+    const templateData = TEMPLATE_RULES_AND_SCENARIOS[contractName]
+
     const contract = await prisma.businessContract.create({
       data: {
-        name: `${w.name} Contract`,
+        name: contractName,
         businessObjective: `Ensure ${w.name.toLowerCase()} completes correctly and the business outcome is verified, not just the technical call.`,
         domain: w.domain,
         ownerId: ba.id,
@@ -204,27 +280,48 @@ async function main() {
         verificationMethod: "Post-execution state check",
         status: ["DRAFT", "UNDER_REVIEW", "APPROVED", "ACTIVE"][Math.floor(Math.random() * 4)],
         businessRules: {
-          create: [{ field: "status", operator: "EQUALS", value: "VALID", logicGroup: "AND", order: 0 }],
+          create: templateData
+            ? templateData.rules.map((r, i) => ({ field: r.field, operator: r.operator, value: r.value, logicGroup: "AND", order: i }))
+            : [{ field: "status", operator: "EQUALS", value: "VALID", logicGroup: "AND", order: 0 }],
         },
       },
     })
 
-    for (let i = 0; i < 6; i++) {
-      const types = ["POSITIVE", "NEGATIVE", "BOUNDARY", "EXCEPTION", "REGRESSION"]
-      await prisma.testScenario.create({
-        data: {
-          contractId: contract.id,
-          workflowId: workflow.id,
-          createdById: ba.id,
-          testType: types[i % types.length],
-          description: `${types[i % types.length]} case ${i + 1} for ${w.name}`,
-          inputData: j({ seed: i }),
-          preconditions: j([]),
-          expectedDecision: i % 3 === 0 ? "REJECT" : "PROCEED",
-          expectedOutcome: "destination state matches",
-          prohibitedActions: j(["duplicate side effect"]),
-        },
-      })
+    if (templateData) {
+      for (const s of templateData.scenarios) {
+        await prisma.testScenario.create({
+          data: {
+            contractId: contract.id,
+            workflowId: workflow.id,
+            createdById: ba.id,
+            testType: s.testType,
+            description: s.description,
+            inputData: j(s.inputData),
+            preconditions: j([]),
+            expectedDecision: s.expectedDecision,
+            expectedOutcome: s.expectedOutcome,
+            prohibitedActions: j(["duplicate side effect"]),
+          },
+        })
+      }
+    } else {
+      for (let i = 0; i < 6; i++) {
+        const types = ["POSITIVE", "NEGATIVE", "BOUNDARY", "EXCEPTION", "REGRESSION"]
+        await prisma.testScenario.create({
+          data: {
+            contractId: contract.id,
+            workflowId: workflow.id,
+            createdById: ba.id,
+            testType: types[i % types.length],
+            description: `${types[i % types.length]} case ${i + 1} for ${w.name}`,
+            inputData: j({ seed: i }),
+            preconditions: j([]),
+            expectedDecision: i % 3 === 0 ? "REJECT" : "PROCEED",
+            expectedOutcome: "destination state matches",
+            prohibitedActions: j(["duplicate side effect"]),
+          },
+        })
+      }
     }
 
     allWorkflows.push({ workflow, version: workflow.versions[0], contract })

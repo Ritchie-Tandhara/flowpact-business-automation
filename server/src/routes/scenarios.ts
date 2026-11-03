@@ -2,6 +2,7 @@ import { Router } from "express"
 import { z } from "zod"
 import { prisma } from "../db/client.js"
 import { evaluateRuleSet, expectedRulesSatisfied } from "../services/ruleEngine.js"
+import { runWorkflow, validateGraph, type WorkflowGraph } from "../services/workflowInterpreter.js"
 
 export const scenariosRouter = Router()
 
@@ -105,7 +106,7 @@ scenariosRouter.post("/run-suite", async (req, res) => {
 
   const contract = await prisma.businessContract.findUnique({
     where: { id: contractId },
-    include: { businessRules: true, workflow: { include: { versions: { orderBy: { versionNum: "desc" }, take: 1 } } } },
+    include: { businessRules: true, workflow: { include: { versions: { orderBy: [{ isPublished: "desc" }, { versionNum: "desc" }], take: 1 } } } },
   })
   if (!contract) return res.status(404).json({ message: "Contract not found" })
 
@@ -113,6 +114,9 @@ scenariosRouter.post("/run-suite", async (req, res) => {
   if (!version) {
     return res.status(409).json({ message: "Contract must be linked to a workflow with at least one version before running scenarios." })
   }
+
+  const graph = JSON.parse(version.graph) as WorkflowGraph
+  const graphValidation = validateGraph(graph)
 
   const scenarios = await prisma.testScenario.findMany({ where: { contractId } })
   if (scenarios.length === 0) {
@@ -135,6 +139,20 @@ scenariosRouter.post("/run-suite", async (req, res) => {
     const actualDecision = satisfied ? "RULES_SATISFIED" : "RULES_BLOCKED"
     const actualOutcome = passed ? scenario.expectedOutcome : `Rule evaluation ${satisfied ? "satisfied" : "blocked"} the action; expected ${expectedSatisfied ? "satisfied" : "blocked"}.`
 
+    // Pass/fail is decided by the rule check above (fast, always available). When the
+    // linked workflow's current graph is valid, also run it through the real interpreter
+    // so the scenario detail view can show what the graph itself would actually do with
+    // this input, not just whether the contract's rules permit it.
+    let graphTrace = null
+    let graphOutcome: { completed: boolean; terminalNodeName: string | null; stoppedReason?: string } | null = null
+    if (graphValidation.valid) {
+      const runResult = runWorkflow(graph, input)
+      graphTrace = runResult.trace
+      graphOutcome = { completed: runResult.completed, terminalNodeName: runResult.terminalNodeName, stoppedReason: runResult.stoppedReason }
+    }
+
+    const executionTrace = { ruleTrace: details, graphTrace, graphOutcome, graphInvalidReason: graphValidation.valid ? null : graphValidation.errors.join(" ") }
+
     const result = await prisma.testRunResult.create({
       data: {
         testRunId: testRun.id,
@@ -142,10 +160,10 @@ scenariosRouter.post("/run-suite", async (req, res) => {
         status: passed ? "PASSED" : "FAILED",
         actualDecision,
         actualOutcome,
-        executionTrace: j(details),
+        executionTrace: j(executionTrace),
       },
     })
-    results.push({ ...result, executionTrace: details })
+    results.push({ ...result, executionTrace })
   }
 
   await prisma.testRun.update({

@@ -69,12 +69,19 @@ export interface RuleEvaluationDetail {
   referenced: boolean
 }
 
+export interface ScenarioExecutionTrace {
+  ruleTrace: RuleEvaluationDetail[]
+  graphTrace: RunTraceEntry[] | null
+  graphOutcome: { completed: boolean; terminalNodeName: string | null; stoppedReason?: string } | null
+  graphInvalidReason: string | null
+}
+
 export interface TestRunResult {
   id: string
   status: "PASSED" | "FAILED" | "BLOCKED" | "NOT_RUN"
   actualDecision: string | null
   actualOutcome: string | null
-  executionTrace: RuleEvaluationDetail[]
+  executionTrace: ScenarioExecutionTrace
   createdAt: string
 }
 
