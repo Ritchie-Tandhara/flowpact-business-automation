@@ -93,6 +93,75 @@ export interface TestScenario {
   latestResult: TestRunResult | null
 }
 
+export type WorkflowNodeType =
+  | "trigger"
+  | "condition"
+  | "transform"
+  | "setVariable"
+  | "mockApiAction"
+  | "verifyOutcome"
+  | "end"
+
+export interface WorkflowNodeData {
+  name: string
+  config?: Record<string, unknown>
+}
+
+export interface WorkflowGraphNode {
+  id: string
+  type: WorkflowNodeType
+  position: { x: number; y: number }
+  data: WorkflowNodeData
+}
+
+export interface WorkflowGraphEdge {
+  id: string
+  source: string
+  target: string
+  sourceHandle?: string
+}
+
+export interface WorkflowGraph {
+  nodes: WorkflowGraphNode[]
+  edges: WorkflowGraphEdge[]
+}
+
+export interface WorkflowVersion {
+  id: string
+  workflowId: string
+  versionNum: number
+  graph: WorkflowGraph
+  isPublished: boolean
+  createdAt: string
+}
+
+export interface WorkflowDetail {
+  id: string
+  name: string
+  domain: string
+  description: string
+  status: string
+  versions: WorkflowVersion[]
+}
+
+export interface RunTraceEntry {
+  nodeId: string
+  nodeType: WorkflowNodeType
+  nodeName: string
+  status: "SUCCESS" | "FAILED" | "SKIPPED"
+  input: Record<string, unknown>
+  output: Record<string, unknown> | null
+  errorMessage?: string
+}
+
+export interface RunResult {
+  completed: boolean
+  terminalNodeName: string | null
+  trace: RunTraceEntry[]
+  finalData: Record<string, unknown>
+  stoppedReason?: string
+}
+
 export interface NodeExecutionTrace {
   id: string
   nodeId: string

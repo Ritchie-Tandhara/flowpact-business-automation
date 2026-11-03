@@ -8,6 +8,13 @@
 - `client/src/pages/OutcomeAssurance.tsx`: filterable ledger table, detail dialog with expected/observed state diff, reverify, and a resolution flow (Accept Risk / Mark Resolved) gated on providing a note.
 - Verified against real data: running the flagship Subscription Activation suite returns 8/10 passed — the 2 failures are a genuine finding (the contract's 3 rules don't check payment signature or amount, so "Invalid signature" and "Incorrect payment amount" scenarios aren't actually caught), not a bug. This is the kind of gap Scenario Intelligence exists to surface.
 
+## Completed (Phase 4 — Workflow Studio)
+- `server/src/services/workflowInterpreter.ts`: deterministic graph interpreter. Validates the graph first (exactly one trigger, no dangling edges, condition nodes must have both a `true` and `false` branch, cycle detection via DFS coloring — loops are rejected, not executed) then traverses from the trigger node, evaluating `condition` (reuses the rule engine's single-rule evaluator), `transform` (sets one field), `setVariable` (literal or `$field.path` copy), `mockApiAction` (applies a configured on-success `effect`, or fails cleanly on `simulate: "TIMEOUT"`, or silently skips the effect on `simulate: "SILENT_FAILURE"` — this is what lets a "technically successful but no state change" case exist for Outcome Assurance to catch), `verifyOutcome` (compares actual vs. expected field value), and `end` (terminal). No arbitrary JS execution anywhere.
+- `server/src/routes/workflows.ts`: extended with `POST /` (create with a minimal default graph), `GET /:id` (with all versions), `POST /:id/versions` (new version, optionally cloned), `PATCH /:id/versions/:versionId` (edit graph — blocked once a version is published, since published versions are immutable), `POST /:id/versions/:versionId/validate`, `POST /:id/versions/:versionId/test` (runs the interpreter, persists nothing — side-effect-free as required), `POST /:id/publish` (validates first, then flips `isPublished` atomically and sets workflow status).
+- Updated the seeded flagship graph's `mockApiAction` node to carry a real `effect` (`subscription.status → ACTIVE`) so the interpreter demo is meaningful. Verified by hand against all four key paths: valid payment → activates and verifies; failed payment → rejects immediately; `simulate: "TIMEOUT"` → stops cleanly at the action node; `simulate: "SILENT_FAILURE"` → action reports success but `verifyOutcome` correctly catches the mismatch.
+- `client/src/pages/WorkflowStudio.tsx`: React Flow canvas (pan/zoom/minimap/controls), workflow + version selectors, an "Add Node" menu for all 7 node types, double-click-to-configure via `NodeConfigDialog` (per-type fields), drag-to-connect edges (condition nodes expose separate green/red `true`/`false` handles), Validate/Save/Test/Publish actions. The Test dialog runs the real interpreter against arbitrary JSON input and paints each node's trace status (success/failed) directly on the canvas.
+- Verified against the live backend: created a workflow via the API, published it, confirmed `isPublished`/workflow status flipped correctly, then cleaned up the smoke-test row from the seeded dataset.
+
 ## Completed (Light/Dark Mode)
 - Theme is driven by a `data-theme` attribute on `<html>`, set from `localStorage` on load or the OS `prefers-color-scheme` if nothing is stored, persisted on every toggle (`client/src/store/useAppStore.ts`).
 - Tailwind v4 custom variant `@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));` in `index.css` makes `dark:` utilities key off that attribute instead of the OS setting alone, so the in-app toggle (sun/moon icon in the Topbar) overrides the system preference.
@@ -46,7 +53,9 @@
 - `npx tsc --noEmit` passes on the client.
 
 ## Not yet built (by phase)
-- **Phase 4**: Workflow Studio — React Flow canvas, node config panels, workflow interpreter (JSON graph schema is already seeded). This is also what unlocks creating new proposed workflow versions, which Change Impact Lab needs to run fresh simulations rather than just display the seeded one.
+- **Phase 5**: Approvals UI, AI Automation Architect (optional), Analytics drill-downs, `/docs` BA documentation set, final README.
+- Change Impact Lab still only displays the one seeded `ChangeSimulation`; wiring "create a new proposed version in Workflow Studio → run it against the same scenario suite → save a fresh simulation" is a natural next connective piece now that Workflow Studio exists, but is not built yet.
+- Undo/redo on the canvas is not implemented (spec says "where feasible" — React Flow doesn't provide it for free, and it wasn't prioritized over the interpreter/validation work).
 - **Phase 5**: Approvals UI, AI Automation Architect (optional), Analytics drill-downs, `/docs` BA documentation set, final README.
 
 ## Known issues / notes
@@ -55,4 +64,4 @@
 - No authentication is implemented yet; three demo personas (Business Analyst, Automation Developer, Business Approver) exist as seeded `User` rows with no login gate.
 
 ## Next step
-Build Phase 4: Workflow Studio. React Flow canvas rendering the already-seeded JSON graph schema, node config panels for the 7 node types, a deterministic graph interpreter (no arbitrary JS execution), and test/publish actions.
+Build Phase 5: Approvals UI (the data model and one seeded `ApprovalDecision` already exist), then the BA documentation set in `/docs` and the final portfolio README.

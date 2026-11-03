@@ -1,6 +1,5 @@
 import { Routes, Route } from "react-router-dom"
 import {
-  Workflow,
   CheckSquare,
   BarChart3,
   Settings,
@@ -14,6 +13,7 @@ import { ScenarioIntelligence } from "@/pages/ScenarioIntelligence"
 import { OutcomeAssurance } from "@/pages/OutcomeAssurance"
 import { ExecutionCenter } from "@/pages/ExecutionCenter"
 import { ChangeImpactLab } from "@/pages/ChangeImpactLab"
+import { WorkflowStudio } from "@/pages/WorkflowStudio"
 
 function App() {
   return (
@@ -23,17 +23,7 @@ function App() {
         <Route path="/contracts" element={<ContractsList />} />
         <Route path="/contracts/new" element={<ContractEditor />} />
         <Route path="/contracts/:id" element={<ContractEditor />} />
-        <Route
-          path="/studio"
-          element={
-            <ComingSoon
-              title="Workflow Studio"
-              description="Visual automation builder with a deterministic execution engine."
-              icon={Workflow}
-              phaseNote="Phase 4 of the build plan: React Flow canvas, node configuration, and workflow interpreter."
-            />
-          }
-        />
+        <Route path="/studio" element={<WorkflowStudio />} />
         <Route path="/scenarios" element={<ScenarioIntelligence />} />
         <Route path="/impact-lab" element={<ChangeImpactLab />} />
         <Route path="/executions" element={<ExecutionCenter />} />

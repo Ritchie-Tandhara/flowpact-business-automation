@@ -49,7 +49,7 @@ async function main() {
       { id: "trigger-1", type: "trigger", position: { x: 0, y: 150 }, data: { name: "Payment Webhook Received", config: { event: "payment.completed" } } },
       { id: "cond-1", type: "condition", position: { x: 250, y: 150 }, data: { name: "Payment Succeeded?", config: { field: "payment.status", operator: "EQUALS", value: "SUCCESS" } } },
       { id: "cond-2", type: "condition", position: { x: 500, y: 60 }, data: { name: "Already Activated?", config: { field: "subscription.status", operator: "EQUALS", value: "ACTIVE" } } },
-      { id: "action-1", type: "mockApiAction", position: { x: 750, y: 150 }, data: { name: "Activate Subscription", config: { endpoint: "/mock/subscriptions/activate" } } },
+      { id: "action-1", type: "mockApiAction", position: { x: 750, y: 150 }, data: { name: "Activate Subscription", config: { endpoint: "/mock/subscriptions/activate", effect: { field: "subscription.status", value: "ACTIVE" } } } },
       { id: "verify-1", type: "verifyOutcome", position: { x: 1000, y: 150 }, data: { name: "Verify Subscription Active", config: { field: "subscription.status", expected: "ACTIVE" } } },
       { id: "end-1", type: "end", position: { x: 1250, y: 150 }, data: { name: "Complete" } },
       { id: "end-2", type: "end", position: { x: 500, y: 280 }, data: { name: "Reject - Payment Failed" } },
