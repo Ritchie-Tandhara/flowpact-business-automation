@@ -1,5 +1,12 @@
 # FlowPact — Implementation Status
 
+## Completed (Phase 2 — Core Business Logic: Business Contracts)
+- `server/src/routes/workflows.ts`: lightweight list endpoint for linking a contract to a workflow.
+- `client/src/pages/contracts/ContractsList.tsx`: searchable/filterable contract table with status badges and duplicate action.
+- `client/src/pages/contracts/ContractEditor.tsx`: full structured editor (objective, trigger/preconditions, business rule builder, expected/prohibited outcomes, exceptions, acceptance criteria, KPIs/verification) with a right-side live validation panel, summary counts, and lifecycle transition control (Draft → Under Review → Approved → Active → Archived) that blocks advancing while required fields are missing.
+- New shared components: `RuleBuilder`, `TagListEditor`, `StatusBadge`, `Textarea`, `Label`.
+- Routes `/contracts`, `/contracts/new`, `/contracts/:id` wired into `App.tsx`, replacing the placeholder.
+
 ## Completed (Phase 1 — Premium UI Foundation)
 - Monorepo scaffold: `client` (React + TS + Vite + Tailwind v4) and `server` (Express + TS + Prisma + SQLite + Zod), npm workspaces.
 - Design system tokens (navy/indigo/violet palette, light+dark CSS variables) in `client/src/index.css`.
@@ -18,15 +25,14 @@
 - `npx tsc --noEmit` passes on the client.
 
 ## Not yet built (by phase)
-- **Phase 2**: Business Contracts UI (editor, business rule builder, lifecycle UI, right-side validation panel).
 - **Phase 3**: Scenario Intelligence, Change Impact Lab, Execution Center, Outcome Assurance Ledger (backend tables + seed data exist; no routes/UI yet).
 - **Phase 4**: Workflow Studio — React Flow canvas, node config panels, workflow interpreter (JSON graph schema is already seeded).
 - **Phase 5**: Approvals UI, AI Automation Architect (optional), Analytics drill-downs, `/docs` BA documentation set, final README.
 
 ## Known issues / notes
-- Dev ports collide with other projects on this machine — `server/.env` uses `PORT=4100`; `client/vite.config.ts` picks `5327` but Vite will auto-increment if taken. Always check the terminal's printed URL rather than assuming a fixed port.
+- Dev ports collide with other projects on this machine. Current working ports: server `4155` (`server/.env`), client proxy target matches. Vite's configured port may be auto-incremented if taken — always check the terminal's printed URL rather than assuming a fixed port.
 - `npm audit` on `server` reports dev-only vulnerabilities in `vitest`'s bundled `vite`/`esbuild`/`tinypool` (test runner only, not shipped code). Not addressed — fixing requires a vitest v5 major bump that currently conflicts with other deps; low priority for a portfolio demo.
 - No authentication is implemented yet; three demo personas (Business Analyst, Automation Developer, Business Approver) exist as seeded `User` rows with no login gate.
 
 ## Next step
-Build Phase 2: `GET/POST/PATCH /api/contracts` already exist server-side — build the Business Contracts list + contract editor UI next.
+Build Phase 3: Scenario Intelligence (scenario CRUD + run against the workflow interpreter — interpreter itself is Phase 4) and the Outcome Assurance Ledger UI, since their backing tables and seed data already exist.

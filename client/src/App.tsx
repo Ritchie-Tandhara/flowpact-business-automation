@@ -1,6 +1,5 @@
 import { Routes, Route } from "react-router-dom"
 import {
-  FileSignature,
   Workflow,
   FlaskConical,
   GitCompareArrows,
@@ -13,23 +12,17 @@ import {
 import { AppShell } from "@/components/layout/AppShell"
 import { Overview } from "@/pages/Overview"
 import { ComingSoon } from "@/pages/ComingSoon"
+import { ContractsList } from "@/pages/contracts/ContractsList"
+import { ContractEditor } from "@/pages/contracts/ContractEditor"
 
 function App() {
   return (
     <Routes>
       <Route element={<AppShell />}>
         <Route path="/" element={<Overview />} />
-        <Route
-          path="/contracts"
-          element={
-            <ComingSoon
-              title="Business Contracts"
-              description="Define what an automation must accomplish, must satisfy, and must never do."
-              icon={FileSignature}
-              phaseNote="Phase 2 of the build plan: contract editor, business rule builder, and lifecycle workflow (Draft → Review → Approved → Active)."
-            />
-          }
-        />
+        <Route path="/contracts" element={<ContractsList />} />
+        <Route path="/contracts/new" element={<ContractEditor />} />
+        <Route path="/contracts/:id" element={<ContractEditor />} />
         <Route
           path="/studio"
           element={

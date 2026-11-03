@@ -21,6 +21,20 @@ export interface BusinessRule {
   order: number
 }
 
+export interface UserSummary {
+  id: string
+  name: string
+  email: string
+  role: string
+}
+
+export interface WorkflowSummary {
+  id: string
+  name: string
+  domain: string
+  status: string
+}
+
 export interface BusinessContract {
   id: string
   name: string
