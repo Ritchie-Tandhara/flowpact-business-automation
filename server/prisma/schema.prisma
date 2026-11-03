@@ -1,0 +1,235 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String // BUSINESS_ANALYST | AUTOMATION_DEVELOPER | BUSINESS_APPROVER
+  createdAt DateTime @default(now())
+
+  contractsOwned   BusinessContract[] @relation("ContractOwner")
+  scenariosCreated TestScenario[]
+  approvalsRequested ApprovalDecision[] @relation("Requester")
+  approvalsReviewed  ApprovalDecision[] @relation("Reviewer")
+  auditEvents        AuditEvent[]
+}
+
+model BusinessContract {
+  id                 String   @id @default(cuid())
+  name               String
+  businessObjective  String
+  domain             String
+  ownerId            String
+  owner              User     @relation("ContractOwner", fields: [ownerId], references: [id])
+  workflowId         String?
+  workflow           Workflow? @relation(fields: [workflowId], references: [id])
+  trigger            String
+  preconditions      String // JSON string array
+  expectedOutcomes   String // JSON string array
+  prohibitedOutcomes String // JSON string array
+  exceptions         String // JSON string array
+  acceptanceCriteria String // JSON string array (Gherkin-ish)
+  kpis               String // JSON string array
+  verificationMethod String
+  version            Int      @default(1)
+  status             String   @default("DRAFT") // DRAFT | UNDER_REVIEW | APPROVED | ACTIVE | ARCHIVED
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  businessRules      BusinessRule[]
+  scenarios          TestScenario[]
+  outcomeVerifications OutcomeVerification[]
+  approvalDecisions  ApprovalDecision[]
+}
+
+model BusinessRule {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   BusinessContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  field      String
+  operator   String // EQUALS | NOT_EQUALS | GREATER_THAN | LESS_THAN | CONTAINS | IS_EMPTY | IS_NOT_EMPTY
+  value      String?
+  logicGroup String   @default("AND") // AND | OR
+  order      Int      @default(0)
+}
+
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  domain      String
+  description String
+  status      String   @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contracts         BusinessContract[]
+  versions          WorkflowVersion[]
+  executions        ExecutionRecord[]
+}
+
+model WorkflowVersion {
+  id          String   @id @default(cuid())
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  versionNum  Int
+  graph       String // JSON: nodes + edges
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  testRuns       TestRun[]
+  simulationsAsBaseline ChangeSimulation[] @relation("Baseline")
+  simulationsAsProposed ChangeSimulation[] @relation("Proposed")
+  executions     ExecutionRecord[]
+  approvalDecisions ApprovalDecision[]
+
+  @@unique([workflowId, versionNum])
+}
+
+model TestScenario {
+  id                 String   @id @default(cuid())
+  contractId         String
+  contract           BusinessContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  workflowId         String?
+  createdById        String?
+  createdBy          User?    @relation(fields: [createdById], references: [id])
+  testType           String // POSITIVE | NEGATIVE | BOUNDARY | EXCEPTION | REGRESSION
+  description        String
+  inputData          String // JSON
+  preconditions       String
+  expectedDecision   String
+  expectedOutcome    String
+  prohibitedActions  String
+  createdAt          DateTime @default(now())
+
+  testRunResults TestRunResult[]
+}
+
+model TestRun {
+  id                 String   @id @default(cuid())
+  workflowVersionId  String
+  workflowVersion    WorkflowVersion @relation(fields: [workflowVersionId], references: [id], onDelete: Cascade)
+  triggeredAt        DateTime @default(now())
+  totalScenarios     Int      @default(0)
+  passedCount        Int      @default(0)
+  failedCount        Int      @default(0)
+
+  results TestRunResult[]
+}
+
+model TestRunResult {
+  id              String   @id @default(cuid())
+  testRunId       String
+  testRun         TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+  scenarioId      String
+  scenario        TestScenario @relation(fields: [scenarioId], references: [id])
+  status          String // PASSED | FAILED | BLOCKED | NOT_RUN
+  actualDecision  String?
+  actualOutcome   String?
+  executionTrace  String // JSON array of node traces
+  createdAt       DateTime @default(now())
+}
+
+model ExecutionRecord {
+  id                  String   @id @default(cuid())
+  workflowId          String
+  workflow            Workflow @relation(fields: [workflowId], references: [id])
+  workflowVersionId   String
+  workflowVersion     WorkflowVersion @relation(fields: [workflowVersionId], references: [id])
+  trigger             String
+  startedAt           DateTime @default(now())
+  completedAt         DateTime?
+  technicalStatus     String // SUCCESS | FAILED | ERROR
+  businessOutcomeStatus String @default("PENDING") // VERIFIED | MISMATCH | PENDING | UNABLE_TO_VERIFY
+  errorCategory       String?
+  inputSnapshot       String // JSON
+  outputSnapshot      String? // JSON
+
+  nodeTraces          NodeExecutionTrace[]
+  outcomeVerifications OutcomeVerification[]
+}
+
+model NodeExecutionTrace {
+  id             String   @id @default(cuid())
+  executionId    String
+  execution      ExecutionRecord @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  nodeId         String
+  nodeType       String
+  nodeName       String
+  status         String // SUCCESS | FAILED | SKIPPED
+  input          String // JSON
+  output         String? // JSON
+  errorMessage   String?
+  order          Int
+  startedAt      DateTime @default(now())
+}
+
+model ChangeSimulation {
+  id                  String   @id @default(cuid())
+  workflowId          String
+  baselineVersionId   String
+  baselineVersion     WorkflowVersion @relation("Baseline", fields: [baselineVersionId], references: [id])
+  proposedVersionId   String
+  proposedVersion     WorkflowVersion @relation("Proposed", fields: [proposedVersionId], references: [id])
+  totalScenarios      Int
+  unchangedCount       Int
+  improvedCount        Int
+  regressedCount       Int
+  newlyViolatedCount   Int
+  resultDetail         String // JSON array of per-scenario comparison
+  createdAt            DateTime @default(now())
+}
+
+model OutcomeVerification {
+  id               String   @id @default(cuid())
+  executionId      String
+  execution        ExecutionRecord @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  contractId       String
+  contract         BusinessContract @relation(fields: [contractId], references: [id])
+  expectedState    String // JSON
+  observedState    String // JSON
+  status           String // VERIFIED | MISMATCH | PENDING_VERIFICATION | UNABLE_TO_VERIFY
+  mismatchReason   String?
+  evidence         String? // JSON
+  resolutionStatus String  @default("OPEN") // OPEN | RESOLVED | ACCEPTED_RISK
+  ownerId          String?
+  verifiedAt       DateTime @default(now())
+}
+
+model ApprovalDecision {
+  id                 String   @id @default(cuid())
+  workflowId         String
+  workflowVersionId  String
+  workflowVersion    WorkflowVersion @relation(fields: [workflowVersionId], references: [id])
+  contractId         String?
+  contract           BusinessContract? @relation(fields: [contractId], references: [id])
+  simulationId       String?
+  requesterId        String
+  requester          User     @relation("Requester", fields: [requesterId], references: [id])
+  reviewerId          String?
+  reviewer            User?    @relation("Reviewer", fields: [reviewerId], references: [id])
+  status             String   @default("DRAFT") // DRAFT | SUBMITTED | APPROVED | REJECTED
+  testSummary        String? // JSON
+  comments           String?
+  isException        Boolean  @default(false)
+  exceptionReason    String?
+  decidedAt          DateTime?
+  createdAt          DateTime @default(now())
+}
+
+model AuditEvent {
+  id          String   @id @default(cuid())
+  entityType  String
+  entityId    String
+  action      String
+  actorId     String?
+  actor       User?    @relation(fields: [actorId], references: [id])
+  detail      String? // JSON
+  createdAt   DateTime @default(now())
+}
